@@ -24,6 +24,16 @@ var changebgr = &cobra.Command{
 	},
 }
 
+const (
+	//WM_SETTINGCHANGE message
+	SPIF_UPDATEINIFILE    = 0x0
+	SPIF_SENDCHANGE       = 0x1
+	SPIF_SENDWININICHANGE = 0x2
+
+	//UIACTION
+	SPI_SETDESKWALLPAPER = 0x0014
+)
+
 var (
 	user32               = syscall.NewLazyDLL("user32.dll") //user32.dll
 	systemParametersInfo = user32.NewProc("SystemParametersInfoW")
@@ -31,9 +41,14 @@ var (
 
 func setBackground(imagePath string) {
 	if imagePath != "" {
-		fmt.Println("Setting BG to: " + imagePath)
-		ret, _, _ := systemParametersInfo.Call(20, 0, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(imagePath))), 2)
-		fmt.Println(ret)
+
+		ret, _, _ := systemParametersInfo.Call(SPI_SETDESKWALLPAPER, 0, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(imagePath))), SPIF_SENDWININICHANGE)
+		fmt.Println("Background set to: " + imagePath)
+		//fmt.Println(ret)
+		if ret == 1 {
+			os.Exit(0)
+		}
+		os.Exit(int(ret))
 	}
 
 }
